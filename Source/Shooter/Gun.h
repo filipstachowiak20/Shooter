@@ -14,7 +14,7 @@ class SHOOTER_API AGun : public AActor
 {
 	GENERATED_BODY()
 	UPROPERTY(EditDefaultsOnly)
-	USkeletalMeshComponent* Gun;
+	USkeletalMeshComponent* GunMesh;
 	UPROPERTY(EditDefaultsOnly)
 	UCapsuleComponent* Capsule;
 	UPROPERTY(EditDefaultsOnly)
@@ -35,4 +35,6 @@ public:
                       int32 OtherBodyIndex, 
                       bool bFromSweep, 
                       const FHitResult &SweepResult );
+
+	USkeletalMeshComponent* GetGunMesh();
 };

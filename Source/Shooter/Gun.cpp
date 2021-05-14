@@ -11,10 +11,10 @@ AGun::AGun()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun"));
+	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun"));
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
-	SetRootComponent(Gun);
-	Capsule->SetupAttachment(Gun);
+	SetRootComponent(GunMesh);
+	Capsule->SetupAttachment(GunMesh);
 	RotatingMovementComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
 
 	Capsule->OnComponentBeginOverlap.AddDynamic( this, &AGun::BeginOverlap );
@@ -48,6 +48,7 @@ void AGun::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	}
 }
 
-
-
-
+USkeletalMeshComponent* AGun::GetGunMesh()
+{
+	return GunMesh;
+}

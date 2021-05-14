@@ -7,6 +7,9 @@
 #include "Hero.generated.h"
 
 class UCameraComponent;
+class AProjectile;
+class AGun;
+class AArenaGM;
 
 UCLASS()
 class SHOOTER_API AHero : public ACharacter
@@ -20,7 +23,13 @@ class SHOOTER_API AHero : public ACharacter
 public:
 	UPROPERTY(VisibleDefaultsOnly)
 	USkeletalMeshComponent* Hands;
-	AActor* Gun;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AProjectile> ProjectileClass;
+	AGun* Gun;
+	UPROPERTY()
+	AArenaGM* ArenaGMRef;
+
 public:
 	// Sets default values for this character's properties
 	AHero();
@@ -39,5 +48,17 @@ public:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Fire();
+	void HeroTakeDamage(int32 Damage, int32 ShooterID);
+private:
+	int32 ID;
+public:
+	void SetID(int32 IDtoSet){ID = IDtoSet;}
+	int32 GetID(){return ID;}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHealth = 100;
+	UPROPERTY(BlueprintReadWrite)
+	int32 Health;
+
 
 };
