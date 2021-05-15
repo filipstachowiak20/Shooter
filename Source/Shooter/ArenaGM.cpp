@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Hero.h"
 #include "ShooterGI.h"
+#include "AIController.h"
 
 
 
@@ -53,7 +54,14 @@ void AArenaGM::RespawnHero(AHero* Hero,int32 ShooterID)
 {
     int32 index = FMath::RandRange(0,StartPoints.Num()-1);
     Hero->SetActorTransform(StartPoints[index]->GetActorTransform());
+    if(Cast<AAIController>(Hero->Controller))
+    {
+        Hero->Health = Hero->MaxHealthAI;
+    }
+    else
+    {
     Hero->Health = Hero->MaxHealth;
+    }
 
     Scores[ShooterID].Score+=1;
     if(Scores[ShooterID]>HighestScore)

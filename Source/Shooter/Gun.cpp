@@ -5,6 +5,7 @@
 #include "GameFramework/RotatingMovementComponent.h"
 #include "Hero.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 AGun::AGun()
@@ -13,8 +14,10 @@ AGun::AGun()
 	PrimaryActorTick.bCanEverTick = false;
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun"));
 	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
+	ReloadBarWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("ReloadBar"));
 	SetRootComponent(GunMesh);
 	Capsule->SetupAttachment(GunMesh);
+	ReloadBarWidgetComp->SetupAttachment(GunMesh,FName("Screen"));	
 	RotatingMovementComp = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovement"));
 
 	Capsule->OnComponentBeginOverlap.AddDynamic( this, &AGun::BeginOverlap );

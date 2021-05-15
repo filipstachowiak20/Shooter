@@ -48,6 +48,7 @@ public:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Fire();
+	void SpawnProjectile();
 	void HeroTakeDamage(int32 Damage, int32 ShooterID);
 private:
 	int32 ID;
@@ -57,8 +58,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 MaxHealth = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 MaxHealthAI = 200;
 	UPROPERTY(BlueprintReadWrite)
 	int32 Health;
+
+	UPROPERTY(EditAnywhere)
+	int32 ShotsPerRound = 3;
+	UPROPERTY(EditAnywhere)
+	float ShotTime = 0.5;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	float ReloadTime = 1.5;
+	UPROPERTY(BlueprintReadOnly)
+	float TimeUntilReload = 0;
+	UPROPERTY(EditAnywhere)
+	float GunDeviation = 1.5;
+	float LastTimeFired = 0;
 
 
 };

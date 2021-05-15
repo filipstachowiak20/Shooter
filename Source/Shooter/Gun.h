@@ -8,6 +8,7 @@
 
 class URotatingMovementComponent;
 class UCapsuleComponent;
+class UWidgetComponent;
 
 UCLASS()
 class SHOOTER_API AGun : public AActor
@@ -19,6 +20,8 @@ class SHOOTER_API AGun : public AActor
 	UCapsuleComponent* Capsule;
 	UPROPERTY(EditDefaultsOnly)
 	URotatingMovementComponent* RotatingMovementComp;
+	UPROPERTY(EditDefaultsOnly)
+	UWidgetComponent* ReloadBarWidgetComp;
 public:	
 	// Sets default values for this actor's properties
 	AGun();

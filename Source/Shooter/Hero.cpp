@@ -9,6 +9,8 @@
 #include "Projectile.h"
 #include "Gun.h"
 #include "ArenaGM.h"
+#include "AIController.h"
+#include "HeroAIController.h"
 
 // Sets default values
 AHero::AHero()
@@ -28,7 +30,6 @@ AHero::AHero()
 	Hands->SetRelativeRotation(FRotator(1.9f, -19.19f, 5.2f));
 	Hands->SetRelativeLocation(FVector(-0.5f, -4.4f, -155.7f));
 
-	Health = MaxHealth;
 
 }
 
@@ -38,6 +39,17 @@ void AHero::BeginPlay()
 	Super::BeginPlay();
 
 	ArenaGMRef = Cast<AArenaGM>(UGameplayStatics::GetGameMode(GetWorld()));
+	if(Cast<AHeroAIController>(Controller))
+	{
+		Health = MaxHealthAI;
+		UE_LOG(LogTemp, Warning, TEXT("AI"))
+		Cast<AHeroAIController>(Controller)->ControlledHero = this;
+		Cast<AHeroAIController>(Controller)->LookForGun();
+	}
+	else
+	{
+	Health = MaxHealth;
+	}
 	
 }
 
@@ -45,6 +57,15 @@ void AHero::BeginPlay()
 void AHero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if(FPlatformTime::Seconds()-LastTimeFired>=ReloadTime)
+	{
+		TimeUntilReload = 0;
+	}
+	else
+	{
+		TimeUntilReload = ReloadTime - FPlatformTime::Seconds()+ LastTimeFired;
+	}
+
 
 }
 
@@ -78,20 +99,35 @@ void AHero::MoveRight(float Value)
 void AHero::Fire()
 {
 	if(!Gun){return;}
-	FVector MuzzleLocation;
-	FRotator MuzzleRotation;
-	Gun->GetGunMesh()->GetSocketWorldLocationAndRotation(FName("Muzzle"), MuzzleLocation, MuzzleRotation);
-	
-	FActorSpawnParameters SpawnParams;
-	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, GetControlRotation(),SpawnParams);
-	Projectile->SetShooterID(GetID());
+	if(TimeUntilReload>0){return;}
+	TArray<FTimerHandle> handles;
+	handles.SetNum(ShotsPerRound);
+	for(int32 index = 1; index <=ShotsPerRound ; index++)
+	{
+		float Duration = ShotTime/ShotsPerRound*index;
+		GetWorld()->GetTimerManager().SetTimer(handles[index-1],this,&AHero::SpawnProjectile, Duration, false);
+	}
+	LastTimeFired = FPlatformTime::Seconds();
 }
 
 void AHero::HeroTakeDamage(int32 Damage, int32 ShooterID)
 {
-	Health = FMath::Clamp(Health-Damage,0,MaxHealth);
+	Health = FMath::Clamp(Health-Damage,0,FMath::Max3(MaxHealth,MaxHealth,MaxHealthAI));
 	if(Health == 0)
 	{
 		ArenaGMRef->RespawnHero(this, ShooterID);
 	}
+}
+
+void AHero::SpawnProjectile()
+{
+	FVector MuzzleLocation;
+	FRotator MuzzleRotation;
+	Gun->GetGunMesh()->GetSocketWorldLocationAndRotation(FName("Muzzle"), MuzzleLocation, MuzzleRotation);
+	FRotator SpawnRotation = GetControlRotation()+ FRotator(FMath::RandRange(-1*GunDeviation,GunDeviation));
+	
+	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, SpawnRotation);
+	Projectile->SetShooterID(GetID());
+
+	TimeUntilReload += ReloadTime/ShotsPerRound;
 }
