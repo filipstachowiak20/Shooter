@@ -80,6 +80,7 @@ void AHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("TurnUp", this, &APawn::AddControllerPitchInput);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("BulletTime", IE_Pressed, this, &AHero::BulletTime);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AHero::Fire);
@@ -130,4 +131,10 @@ void AHero::SpawnProjectile()
 	Projectile->SetShooterID(GetID());
 
 	TimeUntilReload += ReloadTime/ShotsPerRound;
+}
+
+void AHero::BulletTime()
+{
+	GetWorld()->GetWorldSettings()->SetTimeDilation(BulletTimeForce);
+	CustomTimeDilation = 1/BulletTimeForce;
 }

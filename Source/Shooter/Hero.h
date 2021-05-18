@@ -50,6 +50,7 @@ public:
 	void Fire();
 	void SpawnProjectile();
 	void HeroTakeDamage(int32 Damage, int32 ShooterID);
+	void BulletTime();
 private:
 	int32 ID;
 public:
@@ -74,6 +75,13 @@ public:
 	UPROPERTY(EditAnywhere)
 	float GunDeviation = 1.5;
 	float LastTimeFired = 0;
+	UPROPERTY(EditAnywhere)
+	float BulletTimeForce = 0.3;
+	UPROPERTY(EditAnywhere)
+	float BulletTimeDuration = 10;
+	UPROPERTY(EditAnywhere)
+	float BulletTimeRegeneration = 30;
+
 
 
 };
