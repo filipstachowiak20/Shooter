@@ -11,7 +11,7 @@ EBTNodeResult::Type UNextPointTask::ExecuteTask(UBehaviorTreeComponent & OwnerCo
     auto AIController = OwnerComp.GetAIOwner();
     auto ControlledPawn = AIController->GetPawn();
     auto BlackboardComp = OwnerComp.GetBlackboardComponent();
-
+//get random point in radius to go to
     TArray<FHitResult> HitResultsPoints;
     FCollisionObjectQueryParams QueryParams =FCollisionObjectQueryParams(ECollisionChannel::ECC_GameTraceChannel2);
 

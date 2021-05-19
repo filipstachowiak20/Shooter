@@ -10,7 +10,7 @@
 AProjectile::AProjectile()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	Collision = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Collision->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
@@ -25,7 +25,7 @@ AProjectile::AProjectile()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
 
-	// Die after 3 seconds by default
+	// Die after 3 seconds
 	InitialLifeSpan = 3.0f;
 }
 
@@ -36,21 +36,13 @@ void AProjectile::BeginPlay()
 	
 }
 
-// Called every frame
-void AProjectile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	auto Hero = Cast<AHero>(OtherActor);
 	if(Hero)
-	{
+	{	//apply damage to player
 		Hero->HeroTakeDamage(Damage, GetShooterID());
 	}
 
-	//this->Destroy();
+	this->Destroy();
 }

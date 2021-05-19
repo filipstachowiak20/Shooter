@@ -38,12 +38,11 @@ AHero::AHero()
 void AHero::BeginPlay()
 {
 	Super::BeginPlay();
-
+	//set health points for player/AI 
 	ArenaGMRef = Cast<AArenaGM>(UGameplayStatics::GetGameMode(GetWorld()));
 	if(Cast<AHeroAIController>(Controller))
 	{
 		Health = MaxHealthAI;
-		UE_LOG(LogTemp, Warning, TEXT("AI"))
 		Cast<AHeroAIController>(Controller)->ControlledHero = this;
 		Cast<AHeroAIController>(Controller)->LookForGun();
 	}
@@ -54,10 +53,11 @@ void AHero::BeginPlay()
 	
 }
 
-// Called every frame
+
 void AHero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//manage when can fire gun again
 	if(FPlatformTime::Seconds()-LastTimeFired>=ReloadTime)
 	{
 		TimeUntilReload = 0;
@@ -70,7 +70,6 @@ void AHero::Tick(float DeltaTime)
 
 }
 
-// Called to bind functionality to input
 void AHero::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -105,7 +104,7 @@ void AHero::Fire()
 	TArray<FTimerHandle> handles;
 	handles.SetNum(ShotsPerRound);
 	for(int32 index = 1; index <=ShotsPerRound ; index++)
-	{
+	{	//spawn X projectiles in time intervals
 		float Duration = ShotTime/ShotsPerRound*index;
 		GetWorld()->GetTimerManager().SetTimer(handles[index-1],this,&AHero::SpawnProjectile, Duration, false);
 	}
@@ -128,13 +127,13 @@ void AHero::FireAI(FVector CurrentEnemyLocation)
 }
 
 void AHero::HeroTakeDamage(int32 Damage, int32 ShooterID)
-{
+{	//reduct health, tell gamemode to respawn if player's dead
 	Health = FMath::Clamp(Health-Damage,0,FMath::Max3(MaxHealth,MaxHealth,MaxHealthAI));
-	UE_LOG(LogTemp, Warning, TEXT("shot, %d"),Health)
 	if(Health == 0 && !IsDead)
 	{
 		IsDead = true;
-		ArenaGMRef->RespawnHero(this, ShooterID);
+		if(ArenaGMRef)
+		{ArenaGMRef->RespawnHero(this, ShooterID);}
 	}
 }
 
@@ -150,7 +149,7 @@ void AHero::SpawnProjectile()
 	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, SpawnRotation, SpawnParams);
 	if(Projectile)
 	{
-		Projectile->SetShooterID(GetID());
+		Projectile->SetShooterID(GetID());//If projectile kills player, ID will identify which player shot it
 	}
 
 	TimeUntilReload += ReloadTime/ShotsPerRound;
@@ -163,7 +162,6 @@ void AHero::SpawnProjectileAI()
 	FRotator MuzzleRotation;
 	Gun->GetGunMesh()->GetSocketWorldLocationAndRotation(FName("Muzzle"), MuzzleLocation, MuzzleRotation);
 	FRotator Direction = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),EnemyLocation);
-	
 	FRotator SpawnRotation = Direction + FRotator(FMath::RandRange(-1*GunDeviation,GunDeviation));
 	FVector SpawnLocation = MuzzleLocation - GetActorRightVector()*50;
 	FActorSpawnParameters SpawnParams;
@@ -180,10 +178,10 @@ void AHero::SpawnProjectileAI()
 void AHero::BulletTime()
 {
 	if(CanUseBulletTime)
-	{
+	{	//set time dilation for world and player
 		GetWorld()->GetWorldSettings()->SetTimeDilation(BulletTimeForce);
 		CustomTimeDilation = 1/BulletTimeForce;
-
+		//reset time dilation after set time
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle,this,&AHero::StopBulletTime, BulletTimeDuration*BulletTimeForce, false);
 		CanUseBulletTime = false;
@@ -191,10 +189,11 @@ void AHero::BulletTime()
 }
 
 void AHero::StopBulletTime()
-{
+{//reverse time dilation
 	GetWorld()->GetWorldSettings()->SetTimeDilation(1.f);
 	CustomTimeDilation = 1.f;
 	FTimerHandle handle;
+	//handle when bullet time can be used again
 	GetWorld()->GetTimerManager().SetTimer(handle,this,&AHero::RegenerateBulletTime, BulletTimeRegeneration, false);
 }
 

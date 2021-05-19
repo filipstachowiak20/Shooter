@@ -32,11 +32,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 private:
-	int32 ShooterID;
+	int32 ShooterID = -1;
 
 public:
 	int32 GetShooterID(){return ShooterID;}

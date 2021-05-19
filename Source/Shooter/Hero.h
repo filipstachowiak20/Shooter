@@ -26,6 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AProjectile> ProjectileClass;
+	UPROPERTY(BlueprintReadOnly)
 	AGun* Gun;
 	UPROPERTY()
 	AArenaGM* ArenaGMRef;
