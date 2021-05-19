@@ -48,9 +48,13 @@ public:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Fire();
+	void FireAI(FVector CurrentEnemyLocation);
 	void SpawnProjectile();
+	void SpawnProjectileAI();
 	void HeroTakeDamage(int32 Damage, int32 ShooterID);
 	void BulletTime();
+	void StopBulletTime();
+	void RegenerateBulletTime();
 private:
 	int32 ID;
 public:
@@ -81,6 +85,10 @@ public:
 	float BulletTimeDuration = 10;
 	UPROPERTY(EditAnywhere)
 	float BulletTimeRegeneration = 30;
+
+	FVector EnemyLocation;
+	bool IsDead = false;
+	bool CanUseBulletTime = true;
 
 
 

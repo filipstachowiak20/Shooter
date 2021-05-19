@@ -44,5 +44,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	int32 Damage = 10;
+	UPROPERTY(EditAnywhere)
+	float Force = 3000;
 
 };

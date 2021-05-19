@@ -15,5 +15,7 @@ class SHOOTER_API UShootHero : public UBTService
 	GENERATED_BODY()
 protected:
 	virtual void TickNode(UBehaviorTreeComponent & OwnerComp,uint8 * NodeMemory,float DeltaSeconds); 
+	UPROPERTY(EditAnywhere)
+	struct FBlackboardKeySelector EnemyKey;
 	
 };

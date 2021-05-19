@@ -6,6 +6,8 @@
 #include "Hero.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
+#include "ArenaGM.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AGun::AGun()
@@ -38,9 +40,9 @@ void AGun::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
                       const FHitResult &SweepResult )
 {
 	auto Hero = Cast<AHero>(OtherActor);
-	if(Hero && !Hero->Gun)
+	if(Hero && (!Hero->Gun || Hero->Gun->IsPendingKillPending()))
 	{
-
+		RotatingMovementComp->Deactivate();
 		RotatingMovementComp->DestroyComponent();
 		Capsule->DestroyComponent();
 		Hero->Gun = this;
@@ -48,6 +50,7 @@ void AGun::BeginOverlap(UPrimitiveComponent* OverlappedComponent,
 		{AttachToComponent(Hero->Hands, FAttachmentTransformRules::SnapToTargetIncludingScale, FName("GripPoint"));}
 		else
 		{AttachToComponent(Hero->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("GripPoint"));}
+		Cast<AArenaGM>(UGameplayStatics::GetGameMode(GetWorld()))->RespawnGun();
 	}
 }
 

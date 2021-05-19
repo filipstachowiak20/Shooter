@@ -16,9 +16,9 @@ AHeroAIController::AHeroAIController()
     BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
 	PawnSensor->SetDominantSense(SightConfig->GetSenseImplementation());
 	PawnSensor->ConfigureSense(*SightConfig);
-	SightConfig->SightRadius = 2000;
+	SightConfig->SightRadius = 2500;
 	SightConfig->LoseSightRadius = (3000);
-	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+	SightConfig->PeripheralVisionAngleDegrees = 120.0f;
 	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
@@ -38,9 +38,9 @@ void AHeroAIController::LookForGun()
     TArray<FHitResult> HitResultsGuns;
     FCollisionObjectQueryParams QueryParams =FCollisionObjectQueryParams(ECollisionChannel::ECC_GameTraceChannel3);
     if(!ControlledHero){return;}
-
+    FVector Loc = ControlledHero->GetActorLocation()+1000*ControlledHero->GetActorForwardVector();
     GetWorld()->SweepMultiByObjectType(HitResultsGuns, ControlledHero->GetActorLocation(),ControlledHero->GetActorLocation(),FQuat(),
-    QueryParams,FCollisionShape::MakeSphere(1000));
+    QueryParams,FCollisionShape::MakeSphere(2000));
     UE_LOG(LogTemp, Warning, TEXT("%d"),HitResultsGuns.Num())
     if(HitResultsGuns.Num() > 0)
     {
@@ -75,6 +75,11 @@ void AHeroAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollo
         RunBehaviorTree(HeroAIBT);
         UE_LOG(LogTemp, Warning, TEXT("complete, run behavior"))
         IsRunningTowardsGun = false;
+        if(!ControlledHero->Gun)
+        {
+            IsGunFound = false;
+            LookForGun();
+        }
         return;
     }
     if(!IsGunFound)
@@ -87,12 +92,16 @@ void AHeroAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Sti
 {
     if(Stimulus.WasSuccessfullySensed())
     {
+        if(BlackboardComp->GetValueAsObject("Enemy"))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Tried to change enemy!"))
+            return;}
         if(Cast<AHero>(Actor) && IsGunFound && !IsRunningTowardsGun)
         {
         BlackboardComp->SetValueAsObject("Enemy", Actor);
         }
     }
-    else if(BlackboardComp)
+    else if(BlackboardComp  && Actor == Cast<AActor>(BlackboardComp->GetValueAsObject("Enemy")))
     {
         BlackboardComp->ClearValue("Enemy");
     }

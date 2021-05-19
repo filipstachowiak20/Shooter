@@ -21,6 +21,5 @@ EBTNodeResult::Type UNextPointTask::ExecuteTask(UBehaviorTreeComponent & OwnerCo
     auto RandomPoint = HitResultsPoints[FMath::RandRange(0,HitResultsPoints.Num()-1)].GetActor();
 
     BlackboardComp->SetValueAsObject(PointKey.SelectedKeyName,RandomPoint);
-    Cast<AHero>(ControlledPawn)->Fire();
     return EBTNodeResult::Succeeded;
 }

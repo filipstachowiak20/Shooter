@@ -4,10 +4,12 @@
 #include "ShootHero.h"
 #include "AIController.h"
 #include "Hero.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 void UShootHero::TickNode(UBehaviorTreeComponent & OwnerComp,uint8 * NodeMemory,float DeltaSeconds)
 {
     Super::TickNode(OwnerComp,NodeMemory,DeltaSeconds);
-
-    Cast<AHero>(OwnerComp.GetAIOwner()->GetPawn())->Fire();
+    auto Enemy = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(EnemyKey.SelectedKeyName));
+    if(!Enemy){return;}
+    Cast<AHero>(OwnerComp.GetAIOwner()->GetPawn())->FireAI(Enemy->GetActorLocation());
 }

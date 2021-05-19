@@ -10,5 +10,6 @@ void UFocusOnHero::TickNode(UBehaviorTreeComponent & OwnerComp,uint8 * NodeMemor
     Super::TickNode(OwnerComp,NodeMemory,DeltaSeconds);
 
     auto Enemy = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(PointKey.SelectedKeyName));
+    if(!Enemy){return;}
     OwnerComp.GetAIOwner()->SetFocus(Enemy);
 }

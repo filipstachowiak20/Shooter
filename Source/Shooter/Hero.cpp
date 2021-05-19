@@ -11,6 +11,7 @@
 #include "ArenaGM.h"
 #include "AIController.h"
 #include "HeroAIController.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AHero::AHero()
@@ -111,30 +112,93 @@ void AHero::Fire()
 	LastTimeFired = FPlatformTime::Seconds();
 }
 
+void AHero::FireAI(FVector CurrentEnemyLocation)
+{
+	EnemyLocation = CurrentEnemyLocation;
+	if(!Gun){return;}
+	if(TimeUntilReload>0){return;}
+	TArray<FTimerHandle> handles;
+	handles.SetNum(ShotsPerRound);
+	for(int32 index = 1; index <=ShotsPerRound ; index++)
+	{
+		float Duration = ShotTime/ShotsPerRound*index;
+		GetWorld()->GetTimerManager().SetTimer(handles[index-1],this,&AHero::SpawnProjectileAI, Duration, false);
+	}
+	LastTimeFired = FPlatformTime::Seconds();	
+}
+
 void AHero::HeroTakeDamage(int32 Damage, int32 ShooterID)
 {
 	Health = FMath::Clamp(Health-Damage,0,FMath::Max3(MaxHealth,MaxHealth,MaxHealthAI));
-	if(Health == 0)
+	UE_LOG(LogTemp, Warning, TEXT("shot, %d"),Health)
+	if(Health == 0 && !IsDead)
 	{
+		IsDead = true;
 		ArenaGMRef->RespawnHero(this, ShooterID);
 	}
 }
 
 void AHero::SpawnProjectile()
 {
+	if(!Gun || Gun->IsPendingKillPending()){return;}
 	FVector MuzzleLocation;
 	FRotator MuzzleRotation;
 	Gun->GetGunMesh()->GetSocketWorldLocationAndRotation(FName("Muzzle"), MuzzleLocation, MuzzleRotation);
 	FRotator SpawnRotation = GetControlRotation()+ FRotator(FMath::RandRange(-1*GunDeviation,GunDeviation));
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, SpawnRotation, SpawnParams);
+	if(Projectile)
+	{
+		Projectile->SetShooterID(GetID());
+	}
+
+	TimeUntilReload += ReloadTime/ShotsPerRound;
+}
+
+void AHero::SpawnProjectileAI()
+{
+	if(!Gun ||Gun->IsPendingKillPending()){return;}
+	FVector MuzzleLocation;
+	FRotator MuzzleRotation;
+	Gun->GetGunMesh()->GetSocketWorldLocationAndRotation(FName("Muzzle"), MuzzleLocation, MuzzleRotation);
+	FRotator Direction = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),EnemyLocation);
 	
-	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLocation, SpawnRotation);
-	Projectile->SetShooterID(GetID());
+	FRotator SpawnRotation = Direction + FRotator(FMath::RandRange(-1*GunDeviation,GunDeviation));
+	FVector SpawnLocation = MuzzleLocation - GetActorRightVector()*50;
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
+	auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+	if(Projectile)
+	{
+		Projectile->SetShooterID(GetID());
+	}
 
 	TimeUntilReload += ReloadTime/ShotsPerRound;
 }
 
 void AHero::BulletTime()
 {
-	GetWorld()->GetWorldSettings()->SetTimeDilation(BulletTimeForce);
-	CustomTimeDilation = 1/BulletTimeForce;
+	if(CanUseBulletTime)
+	{
+		GetWorld()->GetWorldSettings()->SetTimeDilation(BulletTimeForce);
+		CustomTimeDilation = 1/BulletTimeForce;
+
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle,this,&AHero::StopBulletTime, BulletTimeDuration*BulletTimeForce, false);
+		CanUseBulletTime = false;
+	}
+}
+
+void AHero::StopBulletTime()
+{
+	GetWorld()->GetWorldSettings()->SetTimeDilation(1.f);
+	CustomTimeDilation = 1.f;
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle,this,&AHero::RegenerateBulletTime, BulletTimeRegeneration, false);
+}
+
+void AHero::RegenerateBulletTime()
+{
+	CanUseBulletTime = true;
 }

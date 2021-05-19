@@ -4,9 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Misc/DateTime.h"
+#include "Misc/Timespan.h" 
 #include "ArenaGM.generated.h"
 
 class AHero;
+class AGun;
+class UUserWidget;
 
 USTRUCT(BlueprintType)
 struct FPlayerInfo
@@ -38,7 +42,9 @@ class SHOOTER_API AArenaGM : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	AArenaGM();
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 public:
 	UPROPERTY(EditAnywhere)
@@ -49,12 +55,29 @@ public:
 	TArray<FPlayerInfo> Scores; 
 	UPROPERTY(BlueprintReadOnly)
 	FPlayerInfo HighestScore;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float TimeLimit = 300;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	int32 FragLimit = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UUserWidget> GameOverWidgetClass;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AHero> HeroClass;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AGun> GunClass;
+
+	UPROPERTY()
+	UUserWidget* GameOverWidget;
+
+	FDateTime GameOverTime;
+	UPROPERTY(BlueprintReadOnly)
+	FTimespan TimeRemaining;
 
 public:
 	void SpawnPlayers();
 	void RespawnHero(AHero* Hero,int32 ShooterID);
+	void RespawnGun();
+	void TimeIsUp();
 	
 };
